@@ -62,7 +62,7 @@ export default function App() {
           {dropdownOpen && (
             <div className="dropdown-menu">
               <a 
-                href="https://busca-cep-ashy.vercel.app/" 
+                href="https://buscacep.aquiguaira.com.br" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="dropdown-item"
