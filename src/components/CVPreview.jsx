@@ -377,7 +377,7 @@ const renderDefaultLayout = () => (
 
         {data.addresses && data.addresses.length > 0 && data.addresses.some(addr => addr.street || addr.cep) && (
           <>
-            <h3 style={{marginTop: '2rem'}}>{renderIcon('📍')}Endereço</h3>
+            <h3 style={{marginTop: '0.8rem'}}>{renderIcon('📍')}Endereço</h3>
             {data.addresses.filter(addr => addr.street || addr.cep).map((addr, idx) => (
               <div key={idx} className="entry">
                 {addr.street && (
@@ -395,19 +395,19 @@ const renderDefaultLayout = () => (
             ))}
           </>
         )}
-
-        {data.skills && data.skills.length > 0 && (
-          <>
-            <h3 style={{marginTop: '2rem'}}>{renderIcon('⚡')}Habilidades</h3>
-            <div className="skills">
-              {data.skills.map((s, i) => (
-                <span key={i} className="skill">{s}</span>
-              ))}
-            </div>
-          </>
-        )}
       </div>
     </section>
+
+    {data.skills && data.skills.length > 0 && (
+      <section className="cv-section skills-section">
+        <h3>{renderIcon('⚡')}Habilidades</h3>
+        <div className="skills">
+          {data.skills.map((s, i) => (
+            <span key={i} className="skill">{s}</span>
+          ))}
+        </div>
+      </section>
+    )}
   </article>
 )
 
