@@ -29,52 +29,35 @@ async function handleDownload() {
     // Render the node to a high‑resolution canvas
     const fullCanvas = await htmlToImage.toCanvas(nodeRef.current, { pixelRatio: 2 })
 
-    // Create PDF
+    // Create PDF - single page A4
     const pdf = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4' })
     const pdfWidthPt = pdf.internal.pageSize.getWidth()
     const pdfHeightPt = pdf.internal.pageSize.getHeight()
 
-    // The fullCanvas width/height are in device pixels. We scale the canvas image to fit pdf width.
     const imgWidthPx = fullCanvas.width
     const imgHeightPx = fullCanvas.height
 
-    // scale ratio from px -> pdf points
-    const scale = pdfWidthPt / imgWidthPx
+    // Calculate scale to fit width
+    const scaleByWidth = pdfWidthPt / imgWidthPx
+    const scaledHeight = imgHeightPx * scaleByWidth
 
-    // compute how many vertical pixels correspond to one PDF page height
-    const pageHeightPx = Math.floor(pdfHeightPt / scale)
+    // If the content is taller than one page, scale down to fit entirely in one page
+    let finalWidth = pdfWidthPt
+    let finalHeight = scaledHeight
+    let offsetX = 0
+    let offsetY = 0
 
-    // If the image fits in one page, add directly
-    if (imgHeightPx <= pageHeightPx) {
-      const dataUrl = fullCanvas.toDataURL('image/png')
-      pdf.addImage(dataUrl, 'PNG', 0, 0, pdfWidthPt, imgHeightPx * scale)
-      pdf.save('curriculo.pdf')
-      return
+    if (scaledHeight > pdfHeightPt) {
+      // Scale to fit height instead, then center horizontally
+      const scaleByHeight = pdfHeightPt / imgHeightPx
+      finalHeight = pdfHeightPt
+      finalWidth = imgWidthPx * scaleByHeight
+      offsetX = (pdfWidthPt - finalWidth) / 2 // center horizontally
+      offsetY = 0
     }
 
-    // Otherwise, slice the canvas vertically into page-sized pieces
-    let y = 0
-    while (y < imgHeightPx) {
-      const sliceHeightPx = Math.min(pageHeightPx, imgHeightPx - y)
-
-      // create temporary canvas for the slice
-      const sliceCanvas = document.createElement('canvas')
-      sliceCanvas.width = imgWidthPx
-      sliceCanvas.height = sliceHeightPx
-      const ctx = sliceCanvas.getContext('2d')
-
-      // draw slice from full canvas
-      ctx.drawImage(fullCanvas, 0, y, imgWidthPx, sliceHeightPx, 0, 0, imgWidthPx, sliceHeightPx)
-
-      const sliceDataUrl = sliceCanvas.toDataURL('image/png')
-      const sliceHeightPt = sliceHeightPx * scale
-
-      pdf.addImage(sliceDataUrl, 'PNG', 0, 0, pdfWidthPt, sliceHeightPt)
-
-      y += sliceHeightPx
-      if (y < imgHeightPx) pdf.addPage()
-    }
-
+    const dataUrl = fullCanvas.toDataURL('image/png')
+    pdf.addImage(dataUrl, 'PNG', offsetX, offsetY, finalWidth, finalHeight)
     pdf.save('curriculo.pdf')
     setLoading(false)
   } catch (err) {
